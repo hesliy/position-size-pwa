@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MNQ Size</title>
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="brand-block">
+        <p class="eyebrow">Offline Execution Tool</p>
+        <h1>MNQ Position Size Calculator</h1>
+      </div>
+
+      <div class="header-actions">
+        <button id="lockSessionBtn" class="ghost-button" type="button" aria-pressed="false">
+          Session Unlocked
+        </button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <nav class="tab-bar" aria-label="Primary tabs">
+        <button
+            id="tabExecution"
+            class="tab-button active"
+            type="button"
+            data-tab="execution"
+            aria-pressed="true"
+        >
+            Execution
+        </button>
+
+        <button
+            id="tabTable"
+            class="tab-button"
+            type="button"
+            data-tab="table"
+            aria-pressed="false"
+        >
+            Sizing Table
+        </button>
+
+        <button
+            id="tabSettings"
+            class="tab-button"
+            type="button"
+            data-tab="settings"
+            aria-pressed="false"
+        >
+            Settings
+        </button>
+        </nav>
+
+      <section id="executionPanel" class="panel active" aria-labelledby="tabExecution">
+        <div class="execution-layout">
+            <div class="panel-card presets-card">
+            <div class="section-heading-row">
+                <div>
+                <p class="section-eyebrow">Rapid Selection</p>
+                <h2>Preset Distances</h2>
+                </div>
+            </div>
+
+            <div id="presetButtons" class="preset-button-grid"></div>
+            </div>
+
+            <div class="execution-top-grid">
+            <div class="panel-card compact-card">
+                <p class="section-eyebrow">Session Risk</p>
+                <div class="metric-value-row">
+                <span class="metric-prefix">$</span>
+                <span id="riskAmountDisplay" class="metric-value">100</span>
+                </div>
+            </div>
+
+            <div class="panel-card compact-card">
+                <label class="input-label" for="stopDistanceInput">Stop Distance (points)</label>
+                <input
+                id="stopDistanceInput"
+                class="stop-distance-input"
+                type="number"
+                inputmode="decimal"
+                step="0.1"
+                min="0"
+                placeholder="Enter points"
+                autocomplete="off"
+                />
+            </div>
+            </div>
+
+            <div id="answerCard" class="panel-card answer-card">
+            <p class="section-eyebrow">Position Size</p>
+            <div class="answer-card-main">
+                <div class="answer-primary-line">
+                <span id="contractsDisplay" class="contracts-display">--</span>
+                <span class="contracts-label">Contracts</span>
+                </div>
+
+                <div class="answer-secondary-line">
+                <span>$</span>
+                <span id="totalRiskDisplay">--</span>
+                <span class="secondary-divider">•</span>
+                <span id="perContractRiskDisplay">--</span>
+                <span>/ contract</span>
+                </div>
+            </div>
+
+            <div class="answer-meta-grid">
+                <div class="answer-meta-item">
+                <span class="answer-meta-label">Exact</span>
+                <span id="exactContractsDisplay" class="answer-meta-value">--</span>
+                </div>
+
+                <div class="answer-meta-item">
+                <span class="answer-meta-label">Safe</span>
+                <span id="safeContractsDisplay" class="answer-meta-value">--</span>
+                </div>
+
+                <div class="answer-meta-item">
+                <span class="answer-meta-label">Capped</span>
+                <span id="cappedContractsDisplay" class="answer-meta-value">--</span>
+                </div>
+            </div>
+            </div>
+
+            <div class="panel-card ladder-card">
+            <div class="section-heading-row">
+                <div>
+                <p class="section-eyebrow">Surrounding Sizes</p>
+                <h2>Dynamic Ladder</h2>
+                </div>
+
+                <div class="mini-tab-bar" aria-label="Ladder precision">
+                <button
+                    id="ladderTabCoarse"
+                    class="mini-tab-button active"
+                    type="button"
+                    aria-pressed="true"
+                >
+                    Coarse
+                </button>
+
+                <button
+                    id="ladderTabFine"
+                    class="mini-tab-button"
+                    type="button"
+                    aria-pressed="false"
+                >
+                    Fine
+                </button>
+                </div>
+            </div>
+
+            <div id="ladderContent" class="ladder-content"></div>
+            </div>
+        </div>
+        </section>
+
+      <section id="tablePanel" class="panel" aria-labelledby="tabTable" hidden>
+        <div class="panel-card">
+            <div class="section-heading-row">
+            <div>
+                <p class="section-eyebrow">Reference</p>
+                <h2>Position Size Table</h2>
+            </div>
+            </div>
+
+            <div class="table-wrapper">
+            <table class="sizing-table">
+                <thead>
+                <tr>
+                    <th>Stop (pts)</th>
+                    <th>Contracts</th>
+                    <th>Risk ($)</th>
+                </tr>
+                </thead>
+                <tbody id="sizingTableBody"></tbody>
+            </table>
+            </div>
+        </div>
+        </section>
+
+      <section id="settingsPanel" class="panel" aria-labelledby="tabSettings" hidden>
+        <div class="settings-shell">
+            <aside class="settings-sidebar panel-card compact-card">
+                <div class="section-heading-row settings-sidebar-header">
+                <div>
+                    <p class="section-eyebrow">Configuration</p>
+                    <h2>Settings</h2>
+                </div>
+                </div>
+
+                <div class="settings-nav">
+                <button id="settingsNavRisk" class="settings-nav-button active" type="button" data-settings-panel="risk">
+                    Risk & Limits
+                </button>
+
+                <button id="settingsNavPresets" class="settings-nav-button" type="button" data-settings-panel="presets">
+                    Presets
+                </button>
+
+                <button id="settingsNavLadder" class="settings-nav-button" type="button" data-settings-panel="ladder">
+                    Ladder
+                </button>
+
+                <button id="settingsNavTable" class="settings-nav-button" type="button" data-settings-panel="table">
+                    Sizing Table
+                </button>
+
+                <button id="settingsNavSync" class="settings-nav-button" type="button" data-settings-panel="sync">
+                    Sync & Transfer
+                </button>
+
+                <button id="settingsNavInstall" class="settings-nav-button" type="button" data-settings-panel="install">
+                    Install
+                </button>
+
+                <button id="settingsNavHotkeys" class="settings-nav-button" type="button" data-settings-panel="hotkeys">
+                    Hotkeys
+                </button>
+
+                <button id="settingsNavAppearance" class="settings-nav-button" type="button" data-settings-panel="appearance">
+                    Appearance
+                </button>
+                </div>
+            </aside>
+
+            <div class="settings-main">
+                <div class="panel-card">
+                <div class="section-heading-row">
+                    <div>
+                    <p class="section-eyebrow">Configuration</p>
+                    <h2 id="settingsPanelTitle">Risk & Limits</h2>
+                    </div>
+
+                    <button id="manualSaveBtn" class="ghost-button" type="button">
+                    Save Settings
+                    </button>
+                </div>
+
+                <section id="settingsCategoryRisk" class="settings-category-panel">
+                    <div class="settings-section">
+                    <div class="settings-section-header">
+                        <div>
+                        <p class="section-eyebrow">Risk & Limits</p>
+                        <h3>Execution Controls</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="riskAmountInput">Max Risk Per Trade</label>
+                            <span class="settings-value-pill">
+                            $<span id="riskAmountValueLabel">100</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="riskAmountSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="1"
+                            max="1000"
+                            step="1"
+                            value="100"
+                        />
+
+                        <input
+                            id="riskAmountInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                            inputmode="numeric"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="maxContractsInput">Max Contracts</label>
+                            <span class="settings-value-pill">
+                            <span id="maxContractsValueLabel">8</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="maxContractsSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="1"
+                            max="50"
+                            step="1"
+                            value="8"
+                        />
+
+                        <input
+                            id="maxContractsInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                            inputmode="numeric"
+                        />
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryPresets" class="settings-category-panel" hidden>
+                    <div class="settings-section">
+                    <div class="settings-section-header">
+                        <div>
+                        <p class="section-eyebrow">Preset Distances</p>
+                        <h3>Execution Buttons</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-control-card">
+                        <div class="settings-control-header">
+                        <label class="settings-label" for="presetDistancesInput">Preset Distance Values</label>
+                        <span class="settings-value-pill">CSV</span>
+                        </div>
+
+                        <p class="settings-help-text">
+                        Enter stop distances separated by commas. Example: 6, 8, 10, 12, 15, 20
+                        </p>
+
+                        <input
+                        id="presetDistancesInput"
+                        class="settings-text-input"
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        />
+                    </div>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryLadder" class="settings-category-panel" hidden>
+                    <div class="settings-section">
+                    <div class="settings-section-header">
+                        <div>
+                        <p class="section-eyebrow">Ladder</p>
+                        <h3>Dynamic Ladder Controls</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="coarseStepInput">Coarse Step</label>
+                            <span class="settings-value-pill">
+                            <span id="coarseStepValueLabel">0.5</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="coarseStepSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            value="0.5"
+                        />
+
+                        <input
+                            id="coarseStepInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            inputmode="decimal"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="coarseRangeInput">Coarse Range</label>
+                            <span class="settings-value-pill">
+                            <span id="coarseRangeValueLabel">1.5</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="coarseRangeSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.5"
+                            max="5"
+                            step="0.1"
+                            value="1.5"
+                        />
+
+                        <input
+                            id="coarseRangeInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.5"
+                            max="5"
+                            step="0.1"
+                            inputmode="decimal"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="fineStepInput">Fine Step</label>
+                            <span class="settings-value-pill">
+                            <span id="fineStepValueLabel">0.1</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="fineStepSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.1"
+                            max="1"
+                            step="0.1"
+                            value="0.1"
+                        />
+
+                        <input
+                            id="fineStepInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.1"
+                            max="1"
+                            step="0.1"
+                            inputmode="decimal"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="fineRangeInput">Fine Range</label>
+                            <span class="settings-value-pill">
+                            <span id="fineRangeValueLabel">0.4</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="fineRangeSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            value="0.4"
+                        />
+
+                        <input
+                            id="fineRangeInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            inputmode="decimal"
+                        />
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryTable" class="settings-category-panel" hidden>
+                    <div class="settings-section">
+                    <div class="settings-section-header">
+                        <div>
+                        <p class="section-eyebrow">Sizing Table</p>
+                        <h3>Reference Table Controls</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="tableMinStopInput">Minimum Stop</label>
+                            <span class="settings-value-pill">
+                            <span id="tableMinStopValueLabel">1</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="tableMinStopSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.5"
+                            max="20"
+                            step="0.5"
+                            value="1"
+                        />
+
+                        <input
+                            id="tableMinStopInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.5"
+                            max="20"
+                            step="0.5"
+                            inputmode="decimal"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="tableMaxStopInput">Maximum Stop</label>
+                            <span class="settings-value-pill">
+                            <span id="tableMaxStopValueLabel">30</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="tableMaxStopSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="5"
+                            max="100"
+                            step="0.5"
+                            value="30"
+                        />
+
+                        <input
+                            id="tableMaxStopInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="5"
+                            max="100"
+                            step="0.5"
+                            inputmode="decimal"
+                        />
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="tableStepInput">Table Increment</label>
+                            <span class="settings-value-pill">
+                            <span id="tableStepValueLabel">0.5</span>
+                            </span>
+                        </div>
+
+                        <input
+                            id="tableStepSlider"
+                            class="settings-slider"
+                            type="range"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            value="0.5"
+                        />
+
+                        <input
+                            id="tableStepInput"
+                            class="settings-number-input"
+                            type="number"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            inputmode="decimal"
+                        />
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <section id="settingsCategorySync" class="settings-category-panel" hidden>
+                    <div class="settings-section">
+                    <div class="settings-section-header">
+                        <div>
+                        <p class="section-eyebrow">Sync & Transfer</p>
+                        <h3>Settings Portability</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <span class="settings-label">Export Settings</span>
+                            <span class="settings-value-pill">JSON</span>
+                        </div>
+
+                        <p class="settings-help-text">
+                            Download your current settings as a JSON file for backup or transfer.
+                        </p>
+
+                        <button id="exportSettingsBtn" class="ghost-button" type="button">
+                            Export Settings File
+                        </button>
+                        </div>
+
+                        <div class="settings-control-card">
+                        <div class="settings-control-header">
+                            <label class="settings-label" for="importSettingsInput">Import Settings</label>
+                            <span class="settings-value-pill">JSON</span>
+                        </div>
+
+                        <p class="settings-help-text">
+                            Import a previously exported settings file. Imported settings are saved immediately.
+                        </p>
+
+                        <input
+                            id="importSettingsInput"
+                            class="settings-file-input"
+                            type="file"
+                            accept="application/json"
+                        />
+                        </div>
+                    </div>
+
+                    <div class="settings-control-card">
+                        <div class="settings-control-header">
+                        <label class="settings-label" for="shareLinkOutput">Share Link</label>
+                        <span class="settings-value-pill">Live</span>
+                        </div>
+
+                        <p class="settings-help-text">
+                        This link always reflects your latest auto-saved settings. Open it on another device to import them there.
+                        </p>
+
+                        <textarea
+                        id="shareLinkOutput"
+                        class="settings-textarea"
+                        rows="4"
+                        readonly
+                        ></textarea>
+
+                        <div class="settings-inline-actions">
+                        <button id="copyShareLinkBtn" class="ghost-button" type="button">
+                            Copy Share Link
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryInstall" class="settings-category-panel" hidden>
+                    <div class="settings-empty-state">
+                    <p class="section-eyebrow">Install</p>
+                    <h3>Coming Later</h3>
+                    <p>Install controls and offline/PWA helpers will live here.</p>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryHotkeys" class="settings-category-panel" hidden>
+                    <div class="settings-empty-state">
+                    <p class="section-eyebrow">Hotkeys</p>
+                    <h3>Coming Later</h3>
+                    <p>Keyboard shortcut settings and a hotkey reference panel will live here.</p>
+                    </div>
+                </section>
+
+                <section id="settingsCategoryAppearance" class="settings-category-panel" hidden>
+                    <div class="settings-empty-state">
+                    <p class="section-eyebrow">Appearance</p>
+                    <h3>Coming Later</h3>
+                    <p>Theme and visual customization controls will live here.</p>
+                    </div>
+                </section>
+
+                <div class="settings-status-row">
+                    <span id="settingsStatusText" class="settings-status-text">
+                    Settings ready.
+                    </span>
+                </div>
+                </div>
+            </div>
+            </div>
+        </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
